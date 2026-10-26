@@ -807,10 +807,12 @@ def main() -> None:
         check=False,
     )
     if qc.returncode:
-        sys.exit(
+        print(
             f"cut-boundary QC did not clear (exit {qc.returncode}); "
-            f"render retained at {out_path}"
+            f"render retained at {out_path}",
+            file=sys.stderr,
         )
+        sys.exit(qc.returncode)
 
 
 if __name__ == "__main__":

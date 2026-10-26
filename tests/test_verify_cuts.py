@@ -29,6 +29,11 @@ class OutputBoundaryTests(unittest.TestCase):
             with self.subTest(edl=edl), self.assertRaises(verify.VerificationError):
                 verify.output_boundaries(edl)
 
+    def test_rejects_non_object_edl(self):
+        for edl in (None, [], "ranges"):
+            with self.subTest(edl=edl), self.assertRaises(verify.VerificationError):
+                verify.output_boundaries(edl)
+
 
 class AudioBoundaryTests(unittest.TestCase):
     @staticmethod
@@ -62,6 +67,11 @@ class AudioBoundaryTests(unittest.TestCase):
         result = verify.inspect_audio_boundary(pcm, count, 1.0)
         self.assertEqual(result["status"], "clear")
 
+    def test_marks_short_audio_window_unavailable(self):
+        pcm = io.BytesIO(struct.pack("<2400h", *([0] * 2400)))
+        result = verify.inspect_audio_boundary(pcm, 2400, 1.0)
+        self.assertEqual(result["status"], "unavailable")
+
 
 class VideoBoundaryTests(unittest.TestCase):
     def test_flags_one_frame_flash(self):
@@ -73,6 +83,11 @@ class VideoBoundaryTests(unittest.TestCase):
         frames = [(-0.0667, 40), (-0.0333, 42), (0.0, 90), (0.0333, 95), (0.0667, 99)]
         result = verify.inspect_video_boundary(frames, 0.0, fps=30)
         self.assertEqual(result["status"], "clear")
+
+    def test_marks_insufficient_frames_unavailable(self):
+        frames = [(-0.0333, 40), (0.0, 42)]
+        result = verify.inspect_video_boundary(frames, 0.0, fps=30)
+        self.assertEqual(result["status"], "unavailable")
 
 
 if __name__ == "__main__":

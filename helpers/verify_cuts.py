@@ -36,6 +36,8 @@ class VerificationError(Exception):
 
 def output_boundaries(edl: dict) -> list[float]:
     """Return output-timeline cut times from the EDL's source ranges."""
+    if not isinstance(edl, dict):
+        raise VerificationError("EDL must be a JSON object")
     ranges = edl.get("ranges")
     if not isinstance(ranges, list) or not ranges:
         raise VerificationError("EDL must contain a non-empty 'ranges' list")
@@ -320,7 +322,7 @@ def analyze_render(
             pcm.close()
     elif not streams["audio"]:
         audio_frames = [
-            {"status": "skipped", "reason": "rendered file has no audio stream"}
+            {"status": "unavailable", "reason": "rendered file has no audio stream"}
             for _ in boundaries
         ]
 
